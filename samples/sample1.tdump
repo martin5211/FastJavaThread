@@ -1,0 +1,96 @@
+2024-01-15 10:30:45
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
+
+"main" #1 prio=5 os_prio=0 cpu=1234.56ms elapsed=100.20s tid=0x00007f1234567890 nid=0x1 runnable [0x00007f1230000000]
+   java.lang.Thread.State: RUNNABLE
+	at com.example.app.MainProcessor.processData(MainProcessor.java:42)
+	at com.example.app.MainProcessor.run(MainProcessor.java:28)
+	at com.example.app.Application.main(Application.java:15)
+
+"worker-1" #10 daemon prio=5 os_prio=0 cpu=567.89ms elapsed=98.10s tid=0x00007f1234567891 nid=0x2 waiting for monitor entry [0x00007f1230100000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+	at com.example.app.ResourceManager.acquireResource(ResourceManager.java:55)
+	- waiting to lock <0x00000000c0000001> (a com.example.app.LockA)
+	- locked <0x00000000c0000002> (a com.example.app.LockB)
+	at com.example.app.Worker.doWork(Worker.java:30)
+	at java.lang.Thread.run(Thread.java:834)
+
+"worker-2" #11 daemon prio=5 os_prio=0 cpu=432.10ms elapsed=98.05s tid=0x00007f1234567892 nid=0x3 waiting for monitor entry [0x00007f1230200000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+	at com.example.app.ResourceManager.acquireOther(ResourceManager.java:70)
+	- waiting to lock <0x00000000c0000002> (a com.example.app.LockB)
+	- locked <0x00000000c0000001> (a com.example.app.LockA)
+	at com.example.app.Worker.doWork(Worker.java:45)
+	at java.lang.Thread.run(Thread.java:834)
+
+"http-nio-8080-exec-1" #20 daemon prio=5 os_prio=0 cpu=89.12ms elapsed=95.00s tid=0x00007f1234567893 nid=0x4 waiting on condition [0x00007f1230300000]
+   java.lang.Thread.State: WAITING (parking)
+	at sun.misc.Unsafe.park(Native Method)
+	- parking to wait for  <0x00000000c0000003> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)
+	at java.util.concurrent.locks.LockSupport.park(LockSupport.java:175)
+	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2039)
+	at java.util.concurrent.LinkedBlockingQueue.take(LinkedBlockingQueue.java:442)
+	at org.apache.tomcat.util.threads.TaskQueue.take(TaskQueue.java:108)
+	at java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1074)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1134)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:834)
+
+"http-nio-8080-exec-2" #21 daemon prio=5 os_prio=0 cpu=120.34ms elapsed=95.00s tid=0x00007f1234567894 nid=0x5 runnable [0x00007f1230400000]
+   java.lang.Thread.State: RUNNABLE
+	at com.example.app.MainProcessor.processData(MainProcessor.java:42)
+	at com.example.app.RequestHandler.handle(RequestHandler.java:88)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.lang.Thread.run(Thread.java:834)
+
+"http-nio-8080-exec-3" #22 daemon prio=5 os_prio=0 tid=0x00007f1234567895 nid=0x6 waiting on condition [0x00007f1230500000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+	at java.lang.Thread.sleep(Native Method)
+	at com.example.app.HealthCheck.poll(HealthCheck.java:25)
+	at com.example.app.RequestHandler.handle(RequestHandler.java:88)
+	at java.lang.Thread.run(Thread.java:834)
+
+"GC task thread#0 (ParallelGC)" os_prio=0 tid=0x00007f1234567896 nid=0x7 runnable
+
+"VM Thread" os_prio=0 tid=0x00007f1234567897 nid=0x8 runnable
+
+"Signal Dispatcher" #4 daemon prio=9 os_prio=0 tid=0x00007f1234567898 nid=0x9 runnable [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Finalizer" #3 daemon prio=8 os_prio=0 tid=0x00007f1234567899 nid=0xa in Object.wait() [0x00007f1230600000]
+   java.lang.Thread.State: WAITING (on Object.wait())
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x00000000c0000004> (a java.lang.ref.ReferenceQueue$Lock)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:143)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:164)
+	at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:209)
+
+"Reference Handler" #2 daemon prio=10 os_prio=0 tid=0x00007f123456789a nid=0xb in Object.wait() [0x00007f1230700000]
+   java.lang.Thread.State: WAITING (on Object.wait())
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0x00000000c0000005> (a java.lang.ref.Reference$Lock)
+	at java.lang.Object.wait(Object.java:502)
+	at java.lang.ref.Reference.tryHandlePending(Reference.java:191)
+	at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:153)
+
+"db-pool-1" #30 daemon prio=5 os_prio=0 cpu=45.67ms elapsed=90.00s tid=0x00007f123456789b nid=0xc waiting on condition [0x00007f1230800000]
+   java.lang.Thread.State: TIMED_WAITING (parking)
+	at sun.misc.Unsafe.park(Native Method)
+	- parking to wait for  <0x00000000c0000006> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)
+	at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:215)
+	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:2078)
+	at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:194)
+	at com.example.app.DatabaseService.query(DatabaseService.java:33)
+	at java.lang.Thread.run(Thread.java:834)
+
+"scheduler-1" #31 daemon prio=5 os_prio=0 cpu=12.34ms elapsed=89.50s tid=0x00007f123456789c nid=0xd waiting on condition [0x00007f1230900000]
+   java.lang.Thread.State: WAITING (parking)
+	at sun.misc.Unsafe.park(Native Method)
+	- parking to wait for  <0x00000000c0000007> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)
+	at java.util.concurrent.locks.LockSupport.park(LockSupport.java:175)
+	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:2039)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1081)
+	at java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1074)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1134)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:834)
