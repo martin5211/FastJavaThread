@@ -1,6 +1,6 @@
 # Fast Java Thread
 
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/MartinCaminoa.fast-java-thread?label=VS%20Code%20Marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=MartinCaminoa.fast-java-thread) [![Install](https://img.shields.io/badge/Install-VS%20Code%20Marketplace-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=MartinCaminoa.fast-java-thread)
+[![VS Code Marketplace](https://vsmarketplacebadges.dev/version-short/MartinCaminoa.fast-java-thread.svg)](https://marketplace.visualstudio.com/items?itemName=MartinCaminoa.fast-java-thread) [![Installs](https://vsmarketplacebadges.dev/installs-short/MartinCaminoa.fast-java-thread.svg)](https://marketplace.visualstudio.com/items?itemName=MartinCaminoa.fast-java-thread)
 
 VS Code extension for analyzing JVM thread dumps (`.tdump` files).
 
