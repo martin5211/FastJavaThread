@@ -2,6 +2,8 @@
 
 VS Code extension for analyzing JVM thread dumps (`.tdump` files).
 
+
+
 ## Features
 
 - **Tree View Sidebar** — Threads grouped by state (RUNNABLE, BLOCKED, WAITING, etc.) with counts and icons
@@ -9,6 +11,10 @@ VS Code extension for analyzing JVM thread dumps (`.tdump` files).
 - **Click-to-Navigate** — Click a thread in the tree to jump to its location in the dump file
 - **Deadlock Detection** — Automatic cycle detection in lock wait graphs
 - **Java 8 & 11+ Support** — Parses both formats (with and without `cpu=`/`elapsed=` fields)
+
+## Screenshots
+
+![pie-chart-image](assets/screenshot-2.png)
 
 ## Usage
 
