@@ -20,10 +20,14 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(editor => {
             if (editor && editor.document.uri.fsPath.endsWith('.tdump')) {
-                const text = editor.document.getText();
-                const dump = parseThreadDump(text);
-                treeProvider.update(dump.threads, editor.document.uri);
-                output.appendLine(`Auto-parsed ${dump.threads.length} threads from ${editor.document.uri.fsPath}`);
+                try {
+                    const text = editor.document.getText();
+                    const dump = parseThreadDump(text);
+                    treeProvider.update(dump.threads, editor.document.uri);
+                    output.appendLine(`Auto-parsed ${dump.threads.length} threads from ${editor.document.uri.fsPath}`);
+                } catch (err) {
+                    output.appendLine(`Failed to parse thread dump: ${err}`);
+                }
             }
         }),
     );
@@ -31,9 +35,13 @@ export function activate(context: vscode.ExtensionContext): void {
     // Parse if already open
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor && activeEditor.document.uri.fsPath.endsWith('.tdump')) {
-        const text = activeEditor.document.getText();
-        const dump = parseThreadDump(text);
-        treeProvider.update(dump.threads, activeEditor.document.uri);
+        try {
+            const text = activeEditor.document.getText();
+            const dump = parseThreadDump(text);
+            treeProvider.update(dump.threads, activeEditor.document.uri);
+        } catch (err) {
+            output.appendLine(`Failed to parse thread dump: ${err}`);
+        }
     }
 
     output.appendLine('Fast Java Thread extension activated');

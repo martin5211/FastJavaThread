@@ -54,24 +54,22 @@ export function detectDeadlocks(threads: ThreadInfo[]): DeadlockCycle[] {
                 parent.set(neighborTid, tid);
                 dfs(neighborTid);
             } else if (neighborColor === 'GRAY') {
-                // Found a cycle - extract it
+                // Found a cycle - reconstruct by following wait-for edges forward
                 const cycleThreads: ThreadInfo[] = [];
                 const cycleLocks: LockInfo[] = [];
 
-                let current = tid;
-                while (current !== neighborTid) {
+                let current = neighborTid;
+                do {
                     const t = threadByTid.get(current);
                     if (t) cycleThreads.push(t);
                     const e = waitingFor.get(current);
-                    if (e) cycleLocks.push(e.lock);
-                    const p = parent.get(current);
-                    if (!p) break;
-                    current = p;
-                }
-                const t = threadByTid.get(neighborTid);
-                if (t) cycleThreads.push(t);
-                const e = waitingFor.get(neighborTid);
-                if (e) cycleLocks.push(e.lock);
+                    if (e) {
+                        cycleLocks.push(e.lock);
+                        current = e.target.tid;
+                    } else {
+                        break;
+                    }
+                } while (current !== neighborTid);
 
                 // Normalize cycle key to avoid duplicates
                 const tids = cycleThreads.map(th => th.tid).sort();

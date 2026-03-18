@@ -1,9 +1,12 @@
-// @ts-nocheck
+// @ts-check
 (function () {
+    // @ts-ignore - acquireVsCodeApi is provided by the VS Code webview runtime
     const vscode = acquireVsCodeApi();
 
+    /** @param {Record<string, number>} stateGroups */
     function renderChart(stateGroups) {
         const canvas = document.getElementById('stateChart');
+        // @ts-ignore - Chart is loaded globally from chart.umd.js
         if (!canvas || typeof Chart === 'undefined') return;
 
         const labels = Object.keys(stateGroups);
@@ -18,6 +21,7 @@
             UNKNOWN: '#795548',
         };
 
+        // @ts-ignore
         new Chart(canvas, {
             type: 'pie',
             data: {
@@ -41,6 +45,7 @@
         });
     }
 
+    /** @param {Array<{method: string, count: number}>} methods */
     function renderHotMethods(methods) {
         const container = document.getElementById('hotMethods');
         if (!container || !methods.length) return;
@@ -53,13 +58,15 @@
         container.innerHTML = html;
     }
 
+    /** @param {Array<{threads: Array<{name: string, state: string}>, locks: Array<{lockId: string, className: string}>}>} deadlocks */
     function renderDeadlocks(deadlocks) {
         const container = document.getElementById('deadlocks');
         if (!container) return;
         if (!deadlocks || deadlocks.length === 0) {
-            container.style.display = 'none';
+            container.classList.add('hidden');
             return;
         }
+        container.classList.remove('hidden');
 
         let html = '<h2>Deadlock Detected!</h2>';
         deadlocks.forEach((cycle, i) => {
@@ -72,6 +79,10 @@
         container.innerHTML = html;
     }
 
+    /**
+     * @param {Record<string, number>} stateGroups
+     * @param {number} totalThreads
+     */
     function renderSummary(stateGroups, totalThreads) {
         const container = document.getElementById('summary');
         if (!container) return;
@@ -84,6 +95,7 @@
         container.innerHTML = html;
     }
 
+    /** @param {string} text */
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;

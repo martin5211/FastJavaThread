@@ -104,6 +104,99 @@ describe('parseThreadDump', () => {
     });
 });
 
+describe('parseThreadDump edge cases', () => {
+    it('should handle empty input', () => {
+        const dump = parseThreadDump('');
+        expect(dump.threads.length).toBe(0);
+        expect(dump.timestamp).toBe('');
+        expect(dump.jvmVersion).toBe('');
+    });
+
+    it('should handle threads with no stack frames', () => {
+        const text = `2024-01-15 10:30:45
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
+
+"empty-thread" #1 prio=5 os_prio=0 tid=0x00007f1234567890 nid=0x1 runnable [0x00007f1230000000]
+   java.lang.Thread.State: RUNNABLE
+
+`;
+        const dump = parseThreadDump(text);
+        expect(dump.threads.length).toBe(1);
+        expect(dump.threads[0].name).toBe('empty-thread');
+        expect(dump.threads[0].stackFrames.length).toBe(0);
+    });
+
+    it('should parse Kotlin stack frames', () => {
+        const text = `2024-01-15 10:30:45
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
+
+"kotlin-thread" #1 prio=5 os_prio=0 tid=0x00007f1234567890 nid=0x1 runnable [0x00007f1230000000]
+   java.lang.Thread.State: RUNNABLE
+\tat com.example.app.MainKt.process(Main.kt:42)
+\tat com.example.app.Service.run(Service.kt:10)
+
+`;
+        const dump = parseThreadDump(text);
+        const thread = dump.threads[0];
+        expect(thread.stackFrames.length).toBe(2);
+        expect(thread.stackFrames[0].fileName).toBe('Main.kt');
+        expect(thread.stackFrames[0].lineNumber).toBe(42);
+        expect(thread.stackFrames[1].fileName).toBe('Service.kt');
+    });
+
+    it('should parse Scala stack frames', () => {
+        const text = `2024-01-15 10:30:45
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
+
+"scala-thread" #1 prio=5 os_prio=0 tid=0x00007f1234567890 nid=0x1 runnable [0x00007f1230000000]
+   java.lang.Thread.State: RUNNABLE
+\tat com.example.app.Main$.process(Main.scala:42)
+
+`;
+        const dump = parseThreadDump(text);
+        const thread = dump.threads[0];
+        expect(thread.stackFrames.length).toBe(1);
+        expect(thread.stackFrames[0].fileName).toBe('Main.scala');
+    });
+
+    it('should parse inner class stack frames', () => {
+        const text = `2024-01-15 10:30:45
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
+
+"inner-thread" #1 prio=5 os_prio=0 tid=0x00007f1234567890 nid=0x1 runnable [0x00007f1230000000]
+   java.lang.Thread.State: RUNNABLE
+\tat com.example.app.Outer$Inner.run(Outer$Inner.java:10)
+
+`;
+        const dump = parseThreadDump(text);
+        const thread = dump.threads[0];
+        expect(thread.stackFrames.length).toBe(1);
+        expect(thread.stackFrames[0].fileName).toBe('Outer$Inner.java');
+        expect(thread.stackFrames[0].className).toBe('com.example.app.Outer$Inner');
+    });
+
+    it('should handle malformed thread headers gracefully', () => {
+        const text = `2024-01-15 10:30:45
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
+
+"valid-thread" #1 prio=5 os_prio=0 tid=0x00007f1234567890 nid=0x1 runnable [0x00007f1230000000]
+   java.lang.Thread.State: RUNNABLE
+\tat com.example.Main.run(Main.java:10)
+
+"malformed header without proper format"
+
+"another-valid" #2 prio=5 os_prio=0 tid=0x00007f1234567891 nid=0x2 runnable [0x00007f1230100000]
+   java.lang.Thread.State: RUNNABLE
+\tat com.example.Other.run(Other.java:20)
+
+`;
+        const dump = parseThreadDump(text);
+        const names = dump.threads.map(t => t.name);
+        expect(names).toContain('valid-thread');
+        expect(names).toContain('another-valid');
+    });
+});
+
 describe('parseThreadDump with Java 8 format', () => {
     const java8Dump = `2024-01-15 10:30:45
 Full thread dump Java HotSpot(TM) 64-Bit Server VM (25.201-b09 mixed mode):

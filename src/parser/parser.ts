@@ -2,7 +2,7 @@ import { ThreadInfo, ThreadState, StackFrame, LockInfo, LockAction, ThreadDump }
 
 const THREAD_HEADER_RE = /^"([^"]+)"\s*(#\d+\s*)?(.*)tid=(0x[\da-f]+)\s+nid=(0x[\da-f]+)\s+(.*?)(?:\[.*\])?$/;
 const STATE_RE = /^\s+java\.lang\.Thread\.State:\s+(\S+)/;
-const STACK_FRAME_RE = /^\s+at\s+([\w.$]+)\.([\w$<>]+)\((\w+\.java):(\d+)\)/;
+const STACK_FRAME_RE = /^\s+at\s+([\w.$]+)\.([\w$<>]+)\(([^)]+):(\d+)\)/;
 const LOCK_RE = /^\s+-\s+(waiting on|locked|parking to wait for|waiting to lock)\s+<(0x[\da-f]+)>\s+\(a\s+([\w.$]+)\)/;
 
 function parseState(stateStr: string): ThreadState {

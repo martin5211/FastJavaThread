@@ -11,3 +11,4 @@ samples/**
 **/*.map
 **/*.ts
 !assets/icon.png
+!assets/chart.umd.js

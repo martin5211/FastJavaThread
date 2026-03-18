@@ -7,14 +7,27 @@ import { ThreadTreeProvider } from '../views/ThreadTreeProvider';
 import { AnalysisWebview } from '../views/AnalysisWebview';
 import { AnalysisResult } from '../models/types';
 
-let lastResult: AnalysisResult | undefined;
-
 export function registerCommands(
     context: vscode.ExtensionContext,
     treeProvider: ThreadTreeProvider,
     output: vscode.OutputChannel,
 ): void {
+    let lastResult: AnalysisResult | undefined;
     const webview = new AnalysisWebview(context.extensionUri);
+    context.subscriptions.push(webview);
+
+    // Clear lastResult when editor changes; auto-refresh dashboard on .tdump open
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            lastResult = undefined;
+            if (editor && editor.document.uri.fsPath.endsWith('.tdump') && webview.isVisible) {
+                const text = editor.document.getText();
+                lastResult = analyze(text, output);
+                treeProvider.update(lastResult.dump.threads, editor.document.uri);
+                webview.update(lastResult);
+            }
+        }),
+    );
 
     context.subscriptions.push(
         vscode.commands.registerCommand('fast-java-thread.analyzeThreadDump', async () => {
@@ -45,13 +58,10 @@ export function registerCommands(
         vscode.commands.registerCommand('fast-java-thread.showDashboard', () => {
             if (!lastResult) {
                 const editor = vscode.window.activeTextEditor;
-                if (editor) {
+                if (editor && editor.document.uri.fsPath.endsWith('.tdump')) {
                     const text = editor.document.getText();
                     lastResult = analyze(text, output);
                     treeProvider.update(lastResult.dump.threads, editor.document.uri);
-                } else {
-                    vscode.window.showWarningMessage('No thread dump analyzed yet. Open and analyze a .tdump file first.');
-                    return;
                 }
             }
             webview.show(lastResult);
@@ -74,6 +84,3 @@ function analyze(text: string, output: vscode.OutputChannel): AnalysisResult {
     return { dump, stateGroups, hotMethods, deadlocks };
 }
 
-export function getLastResult(): AnalysisResult | undefined {
-    return lastResult;
-}

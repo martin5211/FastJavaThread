@@ -1,12 +1,21 @@
 import * as vscode from 'vscode';
+import * as crypto from 'crypto';
 import { AnalysisResult } from '../models/types';
 
-export class AnalysisWebview {
+export class AnalysisWebview implements vscode.Disposable {
     private panel: vscode.WebviewPanel | undefined;
 
     constructor(private readonly extensionUri: vscode.Uri) {}
 
-    show(result: AnalysisResult): void {
+    get isVisible(): boolean {
+        return this.panel !== undefined;
+    }
+
+    dispose(): void {
+        this.panel?.dispose();
+    }
+
+    show(result?: AnalysisResult): void {
         if (this.panel) {
             this.panel.reveal();
         } else {
@@ -27,11 +36,37 @@ export class AnalysisWebview {
         this.panel.webview.html = this.getHtml(this.panel.webview, result);
     }
 
-    private getHtml(webview: vscode.Webview, result: AnalysisResult): string {
+    update(result: AnalysisResult): void {
+        if (this.panel) {
+            this.panel.webview.html = this.getHtml(this.panel.webview, result);
+        }
+    }
+
+    private getHtml(webview: vscode.Webview, result?: AnalysisResult): string {
         const nonce = getNonce();
         const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'assets', 'styles.css'));
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'assets', 'main.js'));
+        const chartUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'assets', 'chart.umd.js'));
         const cspSource = webview.cspSource;
+
+        if (!result) {
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource}; script-src 'nonce-${nonce}'; img-src ${cspSource};">
+    <link rel="stylesheet" href="${styleUri}">
+    <title>Thread Dump Dashboard</title>
+</head>
+<body>
+    <h1>Thread Dump Dashboard</h1>
+    <div class="empty-state">
+        <p>Open a <code>.tdump</code> file to analyze its thread dump.</p>
+    </div>
+</body>
+</html>`;
+        }
 
         const stateGroups: Record<string, number> = {};
         for (const [state, threads] of result.stateGroups) {
@@ -55,14 +90,14 @@ export class AnalysisWebview {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; img-src ${cspSource};">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource}; script-src 'nonce-${nonce}'; img-src ${cspSource};">
     <link rel="stylesheet" href="${styleUri}">
     <title>Thread Dump Dashboard</title>
 </head>
 <body>
     <h1>Thread Dump Dashboard</h1>
 
-    <div id="deadlocks" class="deadlock-alert"></div>
+    <div id="deadlocks" class="deadlock-alert hidden"></div>
 
     <div class="summary-grid" id="summary"></div>
 
@@ -75,7 +110,7 @@ export class AnalysisWebview {
     <div class="hot-methods" id="hotMethods"></div>
 
     <script nonce="${nonce}" id="dump-data" type="application/json">${escapeJsonForHtml(JSON.stringify(data))}</script>
-    <script nonce="${nonce}" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script nonce="${nonce}" src="${chartUri}"></script>
     <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
@@ -83,14 +118,9 @@ export class AnalysisWebview {
 }
 
 function getNonce(): string {
-    let text = '';
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-        text += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return text;
+    return crypto.randomBytes(16).toString('hex');
 }
 
 function escapeJsonForHtml(json: string): string {
-    return json.replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+    return json.replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
 }

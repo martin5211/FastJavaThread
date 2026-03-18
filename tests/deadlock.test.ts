@@ -34,6 +34,36 @@ Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
         expect(cycles.length).toBe(0);
     });
 
+    it('should detect 3-thread deadlock cycle', () => {
+        const text = `2024-01-15 10:30:45
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
+
+"thread-A" #1 prio=5 os_prio=0 tid=0x00007f1234567890 nid=0x1 waiting for monitor entry [0x00007f1230000000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+\tat com.example.A.run(A.java:10)
+\t- waiting to lock <0x00000000c0000001> (a com.example.LockA)
+\t- locked <0x00000000c0000003> (a com.example.LockC)
+
+"thread-B" #2 prio=5 os_prio=0 tid=0x00007f1234567891 nid=0x2 waiting for monitor entry [0x00007f1230100000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+\tat com.example.B.run(B.java:10)
+\t- waiting to lock <0x00000000c0000002> (a com.example.LockB)
+\t- locked <0x00000000c0000001> (a com.example.LockA)
+
+"thread-C" #3 prio=5 os_prio=0 tid=0x00007f1234567892 nid=0x3 waiting for monitor entry [0x00007f1230200000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+\tat com.example.C.run(C.java:10)
+\t- waiting to lock <0x00000000c0000003> (a com.example.LockC)
+\t- locked <0x00000000c0000002> (a com.example.LockB)
+`;
+        const dump = parseThreadDump(text);
+        const cycles = detectDeadlocks(dump.threads);
+
+        expect(cycles.length).toBe(1);
+        const names = cycles[0].threads.map(t => t.name).sort();
+        expect(names).toEqual(['thread-A', 'thread-B', 'thread-C']);
+    });
+
     it('should handle threads waiting on locks held by no one', () => {
         const text = `2024-01-15 10:30:45
 Full thread dump Java HotSpot(TM) 64-Bit Server VM (11.0.2+9-LTS mixed mode):
