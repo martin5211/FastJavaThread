@@ -2,7 +2,7 @@
   "name": "fast-java-thread",
   "displayName": "Fast Java Thread",
   "description": "Analyze JVM thread dumps with tree view, dashboard, and click-to-navigate",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "publisher": "MartinCaminoa",
   "repository": {
     "type": "git",
@@ -77,11 +77,38 @@
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "title": "Fast Java Thread",
+      "properties": {
+        "fastJavaThread.mcp.transport": {
+          "type": "string",
+          "enum": ["stdio", "http"],
+          "default": "stdio",
+          "description": "MCP server transport: stdio (default, for CLI clients) or http (for network/Tauri clients)"
+        },
+        "fastJavaThread.mcp.port": {
+          "type": "number",
+          "default": 3100,
+          "description": "Port for HTTP transport (only used when transport is 'http')"
+        },
+        "fastJavaThread.mcp.auth.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Bearer token authentication for HTTP transport"
+        },
+        "fastJavaThread.mcp.auth.token": {
+          "type": "string",
+          "default": "",
+          "description": "Bearer token for MCP server authentication (only used when auth is enabled)"
+        }
+      }
     }
   },
   "scripts": {
     "copy-chartjs": "cp node_modules/chart.js/dist/chart.umd.js assets/",
     "compile": "tsc -p ./",
+    "mcp": "node out/src/mcp/server.js",
     "watch": "tsc -watch -p ./",
     "test": "jest",
     "package": "npm run copy-chartjs && npm run compile && vsce package",
@@ -96,6 +123,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
     "chart.js": "^4.5.1"
   }
 }
